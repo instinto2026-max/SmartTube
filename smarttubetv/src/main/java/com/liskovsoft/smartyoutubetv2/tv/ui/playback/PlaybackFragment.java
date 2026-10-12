@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.view.ViewStub;
 
 import androidx.annotation.NonNull;
@@ -173,6 +174,12 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
         // We should use internal progress manager because it's used in many places like Exo engine etc.
         // ProgressBar.setRootView already called at this moment.
         ProgressBarManager.setup(getProgressBarManager(), (ViewGroup) root);
+
+        // Redesign: the focused control button is a white circle, so its icon turns dark
+        root.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
+            tintControlIcon(oldFocus, null);
+            tintControlIcon(newFocus, ContextCompat.getColor(root.getContext(), R.color.nav_focused_content));
+        });
 
         return root;
     }
@@ -938,6 +945,25 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
         if (getView() != null) {
             LiveChatView liveChat = getView().findViewById(R.id.live_chat);
             liveChat.setChatReceiver(chatReceiver);
+        }
+    }
+
+    /**
+     * Player control buttons: a focusable circle with the icon in a sibling view
+     */
+    private static void tintControlIcon(View focusedView, Integer color) {
+        if (focusedView == null || focusedView.getId() != R.id.button || !(focusedView.getParent() instanceof ViewGroup)) {
+            return;
+        }
+
+        View icon = ((ViewGroup) focusedView.getParent()).findViewById(R.id.icon);
+
+        if (icon instanceof ImageView) {
+            if (color != null) {
+                ((ImageView) icon).setColorFilter(color);
+            } else {
+                ((ImageView) icon).clearColorFilter();
+            }
         }
     }
 

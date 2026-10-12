@@ -148,4 +148,11 @@
     <dimen name="hero_text_padding_start">48dp</dimen>
     <dimen name="hero_text_padding_end">48dp</dimen>
     <dimen name="hero_text_max_width">480dp</dimen>
+
+    <!-- Redesign: smaller player title. Origin: 34sp, 40dp, 26dp, 32dp -->
+    <dimen name="lb_details_description_title_text_size">26sp</dimen>
+    <dimen name="lb_details_description_title_line_spacing">32dp</dimen>
+    <dimen name="lb_details_description_title_baseline">22dp</dimen>
+    <dimen name="lb_details_description_under_title_baseline_margin">26dp</dimen>
+    <dimen name="lb_details_description_subtitle_text_size">15sp</dimen>
 </resources>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- MOD: Focused player button color (default: #66EEEEEE, new: #E8FFFFFF) -->
-    <color name="lb_control_button_color">#86EEEEEE</color>
+    <!-- Redesign: the focused player button is a white circle, its icon turns dark (see PlaybackFragment) -->
+    <color name="lb_control_button_color">#FFFFFFFF</color>
 
     <!-- Common colors -->
     <color name="default_background_gradient_start">#000000</color>
