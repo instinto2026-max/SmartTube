@@ -456,6 +456,14 @@
   <string name="releases">Publicaciones</string>
   <string name="prefer_avc_over_vp9">Selección de códecs: preferir avc sobre vp9</string>
   <string name="open_chat">Chat/Comentarios</string>
+  <string name="action_lyrics">Letra</string>
+  <string name="lyrics_searching">Buscando la letra…</string>
+  <string name="lyrics_not_found">No hay letra disponible para este video</string>
+  <string name="lyrics_unsynced">Letra sin sincronizar</string>
+  <string name="lyrics_synced">Letra sincronizada</string>
+  <string name="lyrics_offset">Desfase de la letra</string>
+  <string name="lyrics_offset_value">%s s</string>
+  <string name="lyrics_hide">Ocultar letra</string>
   <string name="place_chat_left">Colocar chat a la izquierda</string>
   <string name="use_alt_speech_recognizer">Reconocimiento de voz alternativo</string>
   <string name="time_format">Modo tiempo</string>

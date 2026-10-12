@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <!-- Width is a share of the hero, see HeroView -->
+    <ImageView
+        android:id="@+id/hero_backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no"/>
+
+    <View
+        android:id="@+id/hero_scrim_start"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"/>
+
+    <View
+        android:id="@+id/hero_scrim_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:layout_gravity="bottom"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/hero_text_padding_start"
+        android:paddingEnd="@dimen/hero_text_padding_end"
+        android:paddingBottom="20dp">
+
+        <TextView
+            android:id="@+id/hero_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="@dimen/hero_text_max_width"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="28sp"
+            android:lineSpacingMultiplier="1.05"
+            android:textColor="@color/white"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/hero_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:maxWidth="@dimen/hero_text_max_width"
+            android:textSize="15sp"
+            android:textColor="@color/lyrics_plain"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+    </LinearLayout>
+</merge>

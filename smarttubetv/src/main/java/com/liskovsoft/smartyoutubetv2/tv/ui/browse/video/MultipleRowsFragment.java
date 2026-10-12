@@ -29,6 +29,7 @@ import com.liskovsoft.smartyoutubetv2.tv.presenter.ShortsCardPresenter;
 import com.liskovsoft.smartyoutubetv2.tv.presenter.VideoCardPresenter;
 import com.liskovsoft.smartyoutubetv2.tv.presenter.CustomListRowPresenter;
 import com.liskovsoft.smartyoutubetv2.tv.presenter.base.OnItemLongPressedListener;
+import com.liskovsoft.smartyoutubetv2.tv.ui.browse.BrowseFragment;
 import com.liskovsoft.smartyoutubetv2.tv.ui.browse.interfaces.VideoSection;
 import com.liskovsoft.smartyoutubetv2.tv.ui.common.LeanbackActivity;
 import com.liskovsoft.smartyoutubetv2.tv.ui.common.UriBackgroundManager;
@@ -357,6 +358,10 @@ public abstract class MultipleRowsFragment extends RowsSupportFragment implement
                 mBackgroundManager.setBackgroundFrom((Video) item);
 
                 mMainPresenter.onVideoItemSelected((Video) item);
+
+                if (getParentFragment() instanceof BrowseFragment) {
+                    ((BrowseFragment) getParentFragment()).setHeroVideo((Video) item);
+                }
 
                 checkScrollEnd((Video)item);
             }

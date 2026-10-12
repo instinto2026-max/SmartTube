@@ -31,6 +31,7 @@ import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.AFRAction;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.ActionHelpers;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.ChannelAction;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.ChatAction;
+import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.LyricsAction;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.ClosedCaptioningAction;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.ContentBlockAction;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.actions.FlipAction;
@@ -126,6 +127,7 @@ public class VideoPlayerGlue extends MaxControlsVideoPlayerGlue<PlayerAdapter> i
         putAction(new AFRAction(context));
         putAction(new ScreenDimmingAction(context));
         putAction(new ChatAction(context));
+        putAction(new LyricsAction(context));
         putAction(new PlaybackQueueAction(context));
         putAction(new ContentBlockAction(context));
         putAction(new ShareAction(context));
@@ -168,6 +170,9 @@ public class VideoPlayerGlue extends MaxControlsVideoPlayerGlue<PlayerAdapter> i
         }
         if (mPlayerTweaksData.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_CHAT)) {
             adapter.add(mActions.get(R.id.action_chat));
+        }
+        if (mPlayerTweaksData.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_LYRICS)) {
+            adapter.add(mActions.get(R.id.action_lyrics));
         }
         if (mPlayerTweaksData.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_SEARCH)) {
             adapter.add(mActions.get(R.id.action_search));

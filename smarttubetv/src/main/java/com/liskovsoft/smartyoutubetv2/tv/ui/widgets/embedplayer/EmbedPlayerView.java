@@ -15,6 +15,7 @@ import com.liskovsoft.mediaserviceinterfaces.data.MediaItemFormatInfo;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.Video;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.VideoGroup;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.ChatReceiver;
+import com.liskovsoft.smartyoutubetv2.common.misc.lyrics.Lyrics;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.SeekBarSegment;
 import com.liskovsoft.smartyoutubetv2.common.app.presenters.PlaybackPresenter;
 import com.liskovsoft.smartyoutubetv2.common.app.presenters.base.BasePresenter;
@@ -208,6 +209,16 @@ public class EmbedPlayerView extends PlayerView implements PlaybackView {
 
     @Override
     public void setChatReceiver(ChatReceiver chatReceiver) {
+
+    }
+
+    @Override
+    public void setLyrics(Lyrics lyrics) {
+
+    }
+
+    @Override
+    public void setLyricsPosition(long positionMs, long durationMs) {
 
     }
 

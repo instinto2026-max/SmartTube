@@ -52,6 +52,7 @@ import com.liskovsoft.smartyoutubetv2.common.app.models.data.Video;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.VideoGroup;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.manager.PlayerUI;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.ChatReceiver;
+import com.liskovsoft.smartyoutubetv2.common.misc.lyrics.Lyrics;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.SeekBarSegment;
 import com.liskovsoft.smartyoutubetv2.common.app.presenters.PlaybackPresenter;
 import com.liskovsoft.smartyoutubetv2.common.app.views.PlaybackView;
@@ -84,6 +85,7 @@ import com.liskovsoft.smartyoutubetv2.tv.ui.playback.other.VideoPlayerGlue;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.other.VideoPlayerGlue.OnActionClickedListener;
 import com.liskovsoft.smartyoutubetv2.tv.ui.playback.previewtimebar.StoryboardSeekDataProvider;
 import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.chat.LiveChatView;
+import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.lyrics.LyricsView;
 import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.time.DateTimeView;
 import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.time.EndingTimeView;
 import com.liskovsoft.googlecommon.common.helpers.YouTubeHelper;
@@ -939,6 +941,33 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
         }
     }
 
+    @Override
+    public void setLyrics(Lyrics lyrics) {
+        if (getView() != null) {
+            LyricsView lyricsView = getView().findViewById(R.id.lyrics_view);
+            lyricsView.setLyrics(lyrics);
+
+            View surfaceRoot = getView().findViewById(R.id.surface_root);
+
+            // The tag lives with the view, so a recreated view gets its own listener
+            if (lyrics != null && surfaceRoot.getTag(R.id.lyrics_view) == null) {
+                // Follow the video edge as it's shrunk to make room for the panel
+                surfaceRoot.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                        lyricsView.post(() -> lyricsView.setVideoRight(right)));
+                lyricsView.setVideoRight(surfaceRoot.getRight());
+                surfaceRoot.setTag(R.id.lyrics_view, true);
+            }
+        }
+    }
+
+    @Override
+    public void setLyricsPosition(long positionMs, long durationMs) {
+        if (getView() != null) {
+            LyricsView lyricsView = getView().findViewById(R.id.lyrics_view);
+            lyricsView.setPosition(positionMs, durationMs);
+        }
+    }
+
     // End Ui events
 
     // Begin Engine Events
@@ -1628,6 +1657,12 @@ public class PlaybackFragment extends SeekModePlaybackFragment implements Playba
 
             if (liveChat != null) {
                 liveChat.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+
+            LyricsView lyrics = root.findViewById(R.id.lyrics_view);
+
+            if (lyrics != null && lyrics.hasLyrics()) {
+                lyrics.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         }
     }

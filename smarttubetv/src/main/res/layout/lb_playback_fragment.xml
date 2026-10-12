@@ -54,6 +54,14 @@
         />
     </LinearLayout>
 
+    <!-- Lyrics panel. Width is a share of the screen, see LyricsView -->
+    <com.liskovsoft.smartyoutubetv2.tv.ui.widgets.lyrics.LyricsView
+        android:id="@+id/lyrics_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:visibility="gone"/>
+
     <LinearLayout
         android:id="@+id/player_overlay_wrapper"
         android:orientation="vertical"

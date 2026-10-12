@@ -719,6 +719,8 @@ public class BrowseSupportFragment extends BaseSupportFragment {
 
     BrowseFrameLayout mBrowseFrame;
     private ScaleFrameLayout mScaleFrameLayout;
+    // MOD: room for a collapsed sidebar when the headers are hidden
+    private int mCollapsedMarginStart;
     boolean mHeadersBackStackEnabled = true;
     String mWithHeadersBackStackName;
     boolean mShowingHeaders = true;
@@ -1455,6 +1457,34 @@ public class BrowseSupportFragment extends BaseSupportFragment {
         containerList.setLayoutParams(lp);
     }
 
+    /**
+     * MOD: Where the selected row of the main fragment is aligned, from the top. Leaves room for a featured area.
+     */
+    public void setMainFragmentAlignTop(int alignTop) {
+        mContainerListAlignTop = alignTop;
+        if (mMainFragmentAdapter != null) {
+            setMainFragmentAlignment();
+        }
+    }
+
+    /**
+     * MOD: Default value for {@link #setMainFragmentAlignTop(int)}
+     */
+    public int getDefaultMainFragmentAlignTop() {
+        TypedArray ta = getContext().obtainStyledAttributes(R.styleable.LeanbackTheme);
+        int alignTop = (int) ta.getDimension(R.styleable.LeanbackTheme_browseRowsMarginTop,
+                getResources().getDimensionPixelSize(R.dimen.lb_browse_rows_margin_top));
+        ta.recycle();
+        return alignTop;
+    }
+
+    /**
+     * MOD: Start margin of the main fragment while the headers are hidden. Leaves room for a collapsed sidebar.
+     */
+    public void setCollapsedMarginStart(int marginStart) {
+        mCollapsedMarginStart = marginStart;
+    }
+
     void showHeaders(boolean show) {
         if (DEBUG) Log.v(TAG, "showHeaders " + show);
         mHeadersSupportFragment.setHeadersEnabled(show);
@@ -1464,7 +1494,7 @@ public class BrowseSupportFragment extends BaseSupportFragment {
 
     private void expandMainFragment(boolean expand) {
         MarginLayoutParams params = (MarginLayoutParams) mScaleFrameLayout.getLayoutParams();
-        params.setMarginStart(!expand ? mContainerListMarginStart : 0);
+        params.setMarginStart(!expand ? mContainerListMarginStart : mCollapsedMarginStart);
         mScaleFrameLayout.setLayoutParams(params);
         mMainFragmentAdapter.setExpand(expand);
 

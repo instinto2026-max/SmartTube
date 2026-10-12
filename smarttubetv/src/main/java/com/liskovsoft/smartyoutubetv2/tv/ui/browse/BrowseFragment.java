@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +18,11 @@ import androidx.leanback.app.HeadersSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRowPresenter;
+import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
+import androidx.leanback.widget.SearchOrbView;
 import androidx.leanback.widget.TitleHelper;
 import com.liskovsoft.sharedutils.helpers.Helpers;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.BrowseSection;
@@ -37,9 +40,14 @@ import com.liskovsoft.smartyoutubetv2.tv.R;
 import com.liskovsoft.smartyoutubetv2.tv.presenter.IconHeaderItemPresenter;
 import com.liskovsoft.smartyoutubetv2.tv.ui.browse.dialog.ErrorDialogFragment;
 import com.liskovsoft.smartyoutubetv2.tv.ui.mod.leanback.headers.ExtendedHeadersSupportFragment;
+import com.liskovsoft.smartyoutubetv2.tv.ui.browse.video.VideoRowsFragment;
+import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.hero.HeroView;
+import com.liskovsoft.smartyoutubetv2.tv.ui.widgets.navrail.NavRailView;
 import com.liskovsoft.smartyoutubetv2.tv.ui.mod.leanback.misc.ProgressBarManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -56,6 +64,9 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
     private boolean mIsFragmentCreated;
     private boolean mFocusOnContent;
     private CrashRestorer mCrashRestorer;
+    private NavRailView mNavRail;
+    private HeroView mHero;
+    private boolean mIsHeroShown;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,6 +106,45 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
         View root = super.onCreateView(inflater, container, savedInstanceState);
 
         mProgressBarManager.setRootView((ViewGroup) root);
+
+        // Collapsed sidebar: drawn behind everything, so the expanded sidebar covers it
+        int railWidth = getResources().getDimensionPixelSize(R.dimen.nav_rail_width);
+        mNavRail = new NavRailView(root.getContext());
+        mNavRail.setOnClickListener(v -> startHeadersTransitionSafe(true)); // touch screen support
+        ((ViewGroup) root).addView(mNavRail, 0, new ViewGroup.LayoutParams(railWidth, ViewGroup.LayoutParams.MATCH_PARENT));
+        setCollapsedMarginStart(railWidth);
+        updateNavRailItems();
+
+        // Keep the search and account buttons clear of the collapsed sidebar
+        View titleView = getTitleView();
+        if (titleView != null) {
+            titleView.setPaddingRelative(titleView.getPaddingStart() + railWidth, titleView.getPaddingTop(),
+                    titleView.getPaddingEnd(), titleView.getPaddingBottom());
+        }
+
+        // Featured video: above the rows, below the sidebar and the title
+        ViewGroup browseFrame = root.findViewById(R.id.browse_frame);
+        mHero = new HeroView(root.getContext());
+        mHero.setPageBackgroundColor(ContextCompat.getColor(root.getContext(),
+                Helpers.getThemeAttr(root.getContext(), R.attr.shelfBackground)));
+        mHero.setVisibility(View.GONE);
+        ViewGroup.MarginLayoutParams heroParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
+        heroParams.setMarginStart(railWidth); // keep the collapsed sidebar visible
+        browseFrame.addView(mHero, 1, heroParams);
+        root.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (bottom - top != oldBottom - oldTop) {
+                v.post(this::updateHeroSize);
+            }
+        });
+
+        setBrowseTransitionListener(new BrowseTransitionListener() {
+            @Override
+            public void onHeadersTransitionStart(boolean withHeaders) {
+                if (!withHeaders) {
+                    updateNavRailSelection();
+                }
+            }
+        });
 
         return root;
     }
@@ -155,6 +205,8 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
                 (row) -> {
                     focusOnContentIfNeeded();
                     mBrowsePresenter.onSectionFocused(getSelectedHeaderId());
+                    // Only rows leave room for the featured video. Grids fill the whole screen.
+                    showHero(mSectionFragmentFactory.getCurrentFragment() instanceof VideoRowsFragment);
                 }
         );
 
@@ -177,6 +229,22 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
         // Map category results from the database to ListRow objects.
         // This Adapter is used to render the MainFragment sidebar labels.
         mSectionRowAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        mSectionRowAdapter.registerObserver(new ObjectAdapter.DataObserver() {
+            @Override
+            public void onChanged() {
+                updateNavRailItems();
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                updateNavRailItems();
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                updateNavRailItems();
+            }
+        });
         setAdapter(mSectionRowAdapter);
     }
 
@@ -188,19 +256,22 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
 
-        int brandColorRes = Helpers.getThemeAttr(getContext(), R.attr.brandColor);
-        int brandAccentColorRes = Helpers.getThemeAttr(getContext(), R.attr.brandAccentColor);
 
         updateBadge();
 
         // This title replaces badge in case one is null
         //setTitle(getString(R.string.browse_title));
 
-        // Set fastLane (or headers) background color
-        setBrandColor(ContextCompat.getColor(getContext(), brandColorRes));
+        // Set fastLane (or headers) background color.
+        // Redesign: the sidebar has the same dark look in every color theme.
+        setBrandColor(ContextCompat.getColor(getContext(), R.color.nav_background));
 
         // Set search icon color.
-        setSearchAffordanceColor(ContextCompat.getColor(getContext(), brandAccentColorRes));
+        // Redesign: same quiet dark button as the account one, in every color theme
+        setSearchAffordanceColors(new SearchOrbView.Colors(
+                ContextCompat.getColor(getContext(), R.color.orb_color),
+                ContextCompat.getColor(getContext(), R.color.orb_bright_color),
+                ContextCompat.getColor(getContext(), R.color.orb_icon_color)));
 
         setHeaderPresenterSelector(new PresenterSelector() {
             private final Map<Integer, Presenter> mPresenterMap = new HashMap<>();
@@ -408,6 +479,67 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
         }
     }
 
+    /**
+     * Called by the rows when a video gets focus
+     */
+    public void setHeroVideo(Video video) {
+        if (mHero != null && mIsHeroShown) {
+            mHero.setVideo(video);
+        }
+    }
+
+    private void showHero(boolean show) {
+        if (mHero == null || mIsHeroShown == show) {
+            return;
+        }
+
+        mIsHeroShown = show;
+        mHero.setVisibility(show ? View.VISIBLE : View.GONE);
+        updateHeroSize();
+    }
+
+    private void updateHeroSize() {
+        View root = getView();
+
+        if (mHero == null || root == null || root.getHeight() == 0) {
+            return;
+        }
+
+        TypedValue heightRatio = new TypedValue();
+        getResources().getValue(R.dimen.hero_height_ratio, heightRatio, true);
+        int heroHeight = (int) (root.getHeight() * heightRatio.getFloat());
+        ViewGroup.LayoutParams params = mHero.getLayoutParams();
+        if (params.height != heroHeight) {
+            params.height = heroHeight;
+            mHero.setLayoutParams(params);
+        }
+
+        // The selected row sits right below the featured video
+        setMainFragmentAlignTop(mIsHeroShown ? heroHeight : getDefaultMainFragmentAlignTop());
+    }
+
+    private void updateNavRailItems() {
+        if (mNavRail == null) {
+            return;
+        }
+
+        List<NavRailView.Item> items = new ArrayList<>();
+
+        for (Object item : mSectionRowAdapter.unmodifiableList()) {
+            SectionHeaderItem header = (SectionHeaderItem) ((PageRow) item).getHeaderItem();
+            items.add(new NavRailView.Item(header.getResId(), header.getIconUrl()));
+        }
+
+        mNavRail.setItems(items);
+        updateNavRailSelection();
+    }
+
+    private void updateNavRailSelection() {
+        if (mNavRail != null) {
+            mNavRail.setSelected(getSelectedPosition());
+        }
+    }
+
     private void createHeader(int index, BrowseSection header) {
         HeaderItem headerItem = new SectionHeaderItem(header);
 
@@ -519,11 +651,11 @@ public class BrowseFragment extends BrowseSupportFragment implements BrowseView 
             return;
         }
 
-        int appLogoRes = Helpers.getThemeAttr(getContext(), R.attr.appLogo);
 
         Drawable bridgeIcon = Utils.getDrawable(getContext(), splashPresenter.getBridgePackageName(), "app_icon");
 
-        // Top right corner logo
-        setBadgeDrawable(bridgeIcon != null ? bridgeIcon : appLogoRes > 0 ? ContextCompat.getDrawable(getContext(), appLogoRes) : null);
+        // Top right corner logo.
+        // Redesign: no logo, only the bridge app icon when there's one
+        setBadgeDrawable(bridgeIcon);
     }
 }

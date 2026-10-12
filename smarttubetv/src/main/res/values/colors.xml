@@ -60,12 +60,30 @@
     <color name="foreground_material_light_mod">@android:color/black</color>
 
     <!-- Default Orb buttons colors: search, accounts, search settings etc -->
-    <color name="orb_color">@color/grey</color>
-    <color name="orb_bright_color">@color/grey</color>
+    <!-- Redesign: quiet dark buttons on the top bar instead of colored orbs -->
+    <color name="orb_color">#1F1F25</color>
+    <color name="orb_bright_color">#3A3A44</color>
     <color name="orb_icon_color">@color/white</color>
 
     <!-- Search page mic button color -->
     <color name="lb_speech_orb_not_recording">@color/orb_color</color>
     <color name="lb_speech_orb_not_recording_pulsed">@color/orb_bright_color</color>
     <color name="lb_speech_orb_not_recording_icon">@color/orb_icon_color</color>
+
+    <!-- Sidebar (redesign) -->
+    <color name="nav_background">#0E0E12</color>
+    <color name="nav_content">#B4B4BC</color>
+    <color name="nav_focused_content">#0A0A0C</color>
+    <color name="nav_rail_icon">#8A8A94</color>
+    <color name="clock_time">#E4E4E7</color>
+    <color name="clock_date">#A1A1AA</color>
+    <color name="card_subtitle">#A1A1AA</color>
+
+    <!-- Lyrics panel -->
+    <color name="lyrics_panel_bg">#F2111115</color>
+    <color name="lyrics_accent">#FF2E4D</color>
+    <color name="lyrics_upcoming">#A1A1AA</color>
+    <color name="lyrics_past">#5C5C66</color>
+    <color name="lyrics_plain">#D4D4D8</color>
+    <color name="lyrics_muted">#A1A1AA</color>
 </resources>

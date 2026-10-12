@@ -492,6 +492,14 @@
     <string name="releases">Releases</string>
     <string name="prefer_avc_over_vp9">Codec selection: prefer avc over vp9</string>
     <string name="open_chat">Chat/Comments</string>
+    <string name="action_lyrics">Lyrics</string>
+    <string name="lyrics_searching">Looking for lyrics…</string>
+    <string name="lyrics_not_found">Lyrics not available for this video</string>
+    <string name="lyrics_unsynced">Lyrics without timing</string>
+    <string name="lyrics_synced">Synced lyrics</string>
+    <string name="lyrics_offset">Lyrics offset</string>
+    <string name="lyrics_offset_value">%s s</string>
+    <string name="lyrics_hide">Hide lyrics</string>
     <string name="open_comments">Open comments</string>
     <string name="place_chat_left">Place chat to the left</string>
     <string name="place_comments_left">Place comments to the left</string>

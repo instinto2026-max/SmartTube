@@ -292,6 +292,13 @@ public final class Video {
         return deArrowTitle != null ? deArrowTitle : title;
     }
 
+    /**
+     * Title as uploaded, without DeArrow replacements
+     */
+    public String getOriginalTitle() {
+        return metadataTitle != null ? metadataTitle : title;
+    }
+
     public String getTitleFull() {
         return deArrowTitle != null ? deArrowTitle : metadataTitle != null ? metadataTitle : title;
     }

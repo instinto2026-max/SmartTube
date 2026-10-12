@@ -6,28 +6,45 @@
              android:focusable="true"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content">
+    <!-- Redesign: a chip with a round avatar, white when focused -->
     <LinearLayout
                   android:id="@+id/channel_card_wrapper"
                   android:orientation="horizontal"
+                  android:gravity="center_vertical"
                   android:layout_width="@dimen/channel_card_width"
-                  android:layout_height="wrap_content">
+                  android:layout_height="wrap_content"
+                  android:minHeight="@dimen/channel_card_height"
+                  android:paddingStart="4dp"
+                  android:paddingEnd="12dp"
+                  android:paddingTop="3dp"
+                  android:paddingBottom="3dp"
+                  android:duplicateParentState="true"
+                  android:background="@drawable/channel_chip_bg">
         <ImageView
             android:id="@+id/channel_image"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="start"
+            android:scaleType="centerCrop"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:visibility="invisible"
             tools:ignore="ContentDescription"/>
         <com.liskovsoft.smartyoutubetv2.tv.ui.widgets.marqueetextviewcompat.MarqueeTextViewCompat
             android:id="@+id/channel_title"
             android:singleLine="true"
             android:ellipsize="end"
-            android:layout_gravity="start|center_vertical"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:padding="@dimen/lb_basic_card_info_padding"
+            android:layout_marginStart="8dp"
+            android:duplicateParentState="true"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/channel_chip_text"
             android:textAlignment="textStart"/>
+        <View
+            android:id="@+id/channel_new_content_dot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/channel_new_content_dot"
+            android:visibility="gone"/>
     </LinearLayout>
 </FrameLayout>

@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.PageRow;
@@ -38,13 +39,14 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup) {
-        mUnselectedAlpha = viewGroup.getResources()
-                .getFraction(R.fraction.lb_browse_header_unselect_alpha, 1, 1);
+        // Redesign: unfocused items stay fully visible, the focused one is marked by a pill (see header_item_bg)
+        mUnselectedAlpha = 1f;
         LayoutInflater inflater = (LayoutInflater) viewGroup.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mDefaultIcon = new ColorDrawable(ContextCompat.getColor(viewGroup.getContext(), R.color.lb_grey));
 
-        View view = inflater.inflate(R.layout.icon_header_item, null);
+        // Inflate against the parent to keep match_parent: the focus pill spans the whole sidebar
+        View view = inflater.inflate(R.layout.icon_header_item, viewGroup, false);
         view.setAlpha(mUnselectedAlpha); // Initialize icons to be at half-opacity.
 
         return new ViewHolder(view);
@@ -76,6 +78,9 @@ public class IconHeaderItemPresenter extends RowHeaderPresenter {
             } else {
                 Drawable icon = mResId > 0 ? ContextCompat.getDrawable(rootView.getContext(), mResId) : mDefaultIcon;
                 iconView.setImageDrawable(icon);
+                // Follow the label color: dark on the focused pill, muted otherwise
+                ImageViewCompat.setImageTintList(iconView, mResId > 0 ?
+                        ContextCompat.getColorStateList(rootView.getContext(), R.color.header_item_content) : null);
             }
         }
 

@@ -4,6 +4,7 @@ import com.liskovsoft.smartyoutubetv2.common.app.models.data.Video;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.VideoGroup;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.SeekBarSegment;
 import com.liskovsoft.smartyoutubetv2.common.app.models.playback.ui.ChatReceiver;
+import com.liskovsoft.smartyoutubetv2.common.misc.lyrics.Lyrics;
 
 import java.util.List;
 
@@ -39,4 +40,9 @@ public interface PlayerUI {
     void setSeekBarSegments(List<SeekBarSegment> segments);
     void updateEndingTime();
     void setChatReceiver(ChatReceiver chatReceiver);
+    /**
+     * Shows the lyrics panel. Pass null to hide it.
+     */
+    void setLyrics(Lyrics lyrics);
+    void setLyricsPosition(long positionMs, long durationMs);
 }

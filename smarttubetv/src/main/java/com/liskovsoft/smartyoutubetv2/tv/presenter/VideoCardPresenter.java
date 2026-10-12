@@ -3,11 +3,14 @@ package com.liskovsoft.smartyoutubetv2.tv.presenter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -39,6 +42,8 @@ public class VideoCardPresenter extends LongClickPresenter {
     private int mDefaultTextColor = -1;
     private int mSelectedBackgroundColor = -1;
     private int mSelectedTextColor = -1;
+    private int mSubtitleColor = -1;
+    private Drawable mFocusRing;
     private int mCardPreviewType;
     private int mThumbQuality;
     private int mWidth;
@@ -48,14 +53,15 @@ public class VideoCardPresenter extends LongClickPresenter {
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         Context context = parent.getContext();
 
-        mDefaultBackgroundColor =
-            ContextCompat.getColor(context, Helpers.getThemeAttr(context, R.attr.cardDefaultBackground));
+        // Redesign: the text sits on the page background, the focus is marked around the thumbnail
+        mDefaultBackgroundColor = Color.TRANSPARENT;
         mDefaultTextColor =
                 ContextCompat.getColor(context, R.color.card_default_text);
-        mSelectedBackgroundColor =
-                ContextCompat.getColor(context, Helpers.getThemeAttr(context, R.attr.cardSelectedBackground));
+        mSelectedBackgroundColor = Color.TRANSPARENT;
         mSelectedTextColor =
-                ContextCompat.getColor(context, R.color.card_selected_text_grey);
+                ContextCompat.getColor(context, R.color.card_default_text);
+        mSubtitleColor = ContextCompat.getColor(context, R.color.card_subtitle);
+        mFocusRing = ContextCompat.getDrawable(context, R.drawable.card_focus_ring);
 
         mCardPreviewType = getCardPreviewType(context);
         mThumbQuality = getThumbQuality(context);
@@ -88,6 +94,7 @@ public class VideoCardPresenter extends LongClickPresenter {
         //if (VERSION.SDK_INT >= 23 && MainUIData.instance(context).isUiTweakEnabled(MainUIData.UI_TWEAK_ROUNDED_CORNERS)) {
         //    cardView.setForeground(ContextCompat.getDrawable(context, R.drawable.lb_card_outline));
         //}
+        roundThumbnail(cardView);
         updateCardBackgroundColor(cardView, false);
         return new ViewHolder(cardView);
     }
@@ -112,8 +119,30 @@ public class VideoCardPresenter extends LongClickPresenter {
         }
         TextView contentText = view.findViewById(R.id.content_text);
         if (contentText != null) {
-            contentText.setTextColor(textColor);
+            contentText.setTextColor(mSubtitleColor);
         }
+
+        View thumbnail = view.findViewById(R.id.main_image_wrapper);
+        if (thumbnail != null && VERSION.SDK_INT >= 23) {
+            thumbnail.setForeground(selected ? mFocusRing : null);
+        }
+    }
+
+    private void roundThumbnail(ComplexImageCardView view) {
+        View thumbnail = view.findViewById(R.id.main_image_wrapper);
+
+        if (thumbnail == null || VERSION.SDK_INT < 21) {
+            return;
+        }
+
+        float radius = view.getResources().getDimension(R.dimen.card_thumb_corner_radius);
+        thumbnail.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View v, Outline outline) {
+                outline.setRoundRect(0, 0, v.getWidth(), v.getHeight(), radius);
+            }
+        });
+        thumbnail.setClipToOutline(true);
     }
 
     @Override
