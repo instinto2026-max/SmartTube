@@ -16,6 +16,7 @@ public class CustomVerticalGridPresenter extends VerticalGridPresenter {
 
     public CustomVerticalGridPresenter(int layoutResId, int rootResId) {
         super(ViewUtil.FOCUS_ZOOM_FACTOR, ViewUtil.FOCUS_DIMMER_ENABLED);
+        setShadowEnabled(ViewUtil.CARD_SHADOWS_ENABLED);
 
         mLayoutResId = layoutResId;
         mRootResId = rootResId;

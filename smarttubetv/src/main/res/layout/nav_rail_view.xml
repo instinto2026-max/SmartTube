@@ -9,13 +9,11 @@
         android:layout_height="match_parent"
         android:paddingTop="@dimen/nav_rail_padding_top"
         android:paddingBottom="24dp"
-        android:clipToPadding="false"
+        android:clipToPadding="true"
         android:focusable="false"
         android:descendantFocusability="blocksDescendants"
         android:scrollbars="none"
-        android:overScrollMode="never"
-        android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="32dp">
+        android:overScrollMode="never">
 
         <LinearLayout
             android:id="@+id/nav_rail_items"
@@ -23,4 +21,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"/>
     </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_marginTop="@dimen/nav_rail_padding_top"
+        android:layout_gravity="top"
+        android:background="@drawable/nav_rail_fade_top"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/nav_rail_fade_bottom"/>
 </merge>

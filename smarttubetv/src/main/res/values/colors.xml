@@ -81,7 +81,7 @@
     <color name="card_subtitle">#A1A1AA</color>
 
     <!-- Lyrics panel -->
-    <color name="lyrics_panel_bg">#F2111115</color>
+    <color name="lyrics_panel_bg">#111115</color>
     <color name="lyrics_accent">#FF2E4D</color>
     <color name="lyrics_upcoming">#A1A1AA</color>
     <color name="lyrics_past">#5C5C66</color>

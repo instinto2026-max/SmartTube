@@ -7,5 +7,7 @@ public class CustomListRowPresenter extends ListRowPresenter {
     public CustomListRowPresenter() {
         super(ViewUtil.FOCUS_ZOOM_FACTOR, ViewUtil.FOCUS_DIMMER_ENABLED);
         setSelectEffectEnabled(ViewUtil.ROW_SELECT_EFFECT_ENABLED);
+        // Redesign: no card shadows. They are rendered for every card and can't be seen on the dark background.
+        setShadowEnabled(ViewUtil.CARD_SHADOWS_ENABLED);
     }
 }

@@ -12,16 +12,17 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.Video;
 import com.liskovsoft.smartyoutubetv2.tv.R;
-import com.liskovsoft.smartyoutubetv2.tv.util.ViewUtil;
 
 /**
  * Featured area on top of the browse rows. Shows a large thumbnail and the info of the focused video.
  */
 public class HeroView extends FrameLayout {
-    // Wait for the focus to settle before loading a big image
-    private static final long UPDATE_DELAY_MS = 250;
+    // Wait for the focus to settle before loading a big image: scrolling a row fast loads nothing
+    private static final long UPDATE_DELAY_MS = 400;
     // Share of the width covered by the thumbnail, it's pinned to the right
     private static final float BACKDROP_WIDTH_RATIO = 0.68f;
     private ImageView mBackdrop;
@@ -86,7 +87,7 @@ public class HeroView extends FrameLayout {
     private void applyPendingVideo() {
         Video video = mPendingVideo;
 
-        if (video == null) {
+        if (video == null || getVisibility() != View.VISIBLE) {
             return;
         }
 
@@ -100,11 +101,18 @@ public class HeroView extends FrameLayout {
         // The card thumbnail is too small to fill the hero. Try the 720p one first.
         String bigUrl = video.videoId != null ? "https://i.ytimg.com/vi/" + video.videoId + "/hq720.jpg" : cardUrl;
 
+        // Decode at the size it's shown, not at the full image size
+        int width = mBackdrop.getWidth() > 0 ? mBackdrop.getWidth() : Target.SIZE_ORIGINAL;
+        int height = mBackdrop.getHeight() > 0 ? mBackdrop.getHeight() : Target.SIZE_ORIGINAL;
+
+        // Default caching (unlike ViewUtil.glideOptions(), made for animated previews): coming back to a video doesn't download it again
+        RequestOptions options = new RequestOptions().override(width, height);
+
         Glide.with(getContext())
                 .load(bigUrl)
-                .apply(ViewUtil.glideOptions())
-                .error(Glide.with(getContext()).load(cardUrl).apply(ViewUtil.glideOptions()))
-                .transition(DrawableTransitionOptions.withCrossFade(300))
+                .apply(options)
+                .error(Glide.with(getContext()).load(cardUrl).apply(options))
+                .transition(DrawableTransitionOptions.withCrossFade(200))
                 .into(mBackdrop);
     }
 

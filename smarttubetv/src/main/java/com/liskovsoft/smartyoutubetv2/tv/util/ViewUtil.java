@@ -43,6 +43,10 @@ public class ViewUtil {
      */
     public static final boolean ROW_SELECT_EFFECT_ENABLED = false;
     /**
+     * Shadows around cards in rows and grids. Off: invisible on the dark background and costly on weak devices.
+     */
+    public static final boolean CARD_SHADOWS_ENABLED = false;
+    /**
      * Scroll continue threshold
      */
     public static final int GRID_SCROLL_CONTINUE_NUM = 10;

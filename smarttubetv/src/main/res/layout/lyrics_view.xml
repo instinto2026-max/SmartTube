@@ -34,27 +34,42 @@
             android:ellipsize="end"/>
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/lyrics_scroll"
-        android:background="@android:color/transparent"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:focusable="false"
-        android:descendantFocusability="blocksDescendants"
-        android:scrollbars="none"
-        android:overScrollMode="never"
-        android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="72dp"
-        android:paddingLeft="32dp"
-        android:paddingRight="28dp">
+        android:layout_weight="1">
 
-        <LinearLayout
-            android:id="@+id/lyrics_lines"
+        <ScrollView
+            android:id="@+id/lyrics_scroll"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"/>
-    </ScrollView>
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:focusable="false"
+            android:descendantFocusability="blocksDescendants"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:paddingLeft="32dp"
+            android:paddingRight="28dp">
+
+            <LinearLayout
+                android:id="@+id/lyrics_lines"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+        </ScrollView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_gravity="top"
+            android:background="@drawable/lyrics_fade_top"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/lyrics_fade_bottom"/>
+    </FrameLayout>
 
     <TextView
         android:id="@+id/lyrics_status"

@@ -16,8 +16,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.liskovsoft.smartyoutubetv2.tv.R;
-import com.liskovsoft.smartyoutubetv2.tv.util.ViewUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +86,7 @@ public class NavRailView extends FrameLayout {
             slot.addView(icon, new LayoutParams(iconSize, iconSize, Gravity.CENTER));
 
             if (item.iconUrl != null) {
-                Glide.with(getContext()).load(item.iconUrl).apply(ViewUtil.glideOptions().circleCrop()).into(icon);
+                Glide.with(getContext()).load(item.iconUrl).apply(RequestOptions.circleCropTransform()).into(icon);
             } else if (item.iconResId > 0) {
                 icon.setImageDrawable(ContextCompat.getDrawable(getContext(), item.iconResId));
             }

@@ -3,7 +3,6 @@ package com.liskovsoft.smartyoutubetv2.tv.ui.widgets.lyrics;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -45,12 +44,16 @@ public class LyricsView extends LinearLayout {
     private final List<TextView> mLineViews = new ArrayList<>();
     private Lyrics mLyrics;
     private int mCurrentIndex = Integer.MIN_VALUE;
+    // Karaoke fill of the current line. One span moved along the text: no new objects and no relayout per tick.
+    private ForegroundColorSpan mSungSpan;
+    private int mSungChars;
     private int mColorCurrent;
     private int mColorSung;
     private int mColorUpcoming;
     private int mColorPast;
     private int mColorPlain;
     private int mVideoRight;
+    private final int mPlainScrollStepPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
 
     public LyricsView(Context context) {
         super(context);
@@ -84,6 +87,7 @@ public class LyricsView extends LinearLayout {
         mColorUpcoming = ContextCompat.getColor(context, R.color.lyrics_upcoming);
         mColorPast = ContextCompat.getColor(context, R.color.lyrics_past);
         mColorPlain = ContextCompat.getColor(context, R.color.lyrics_plain);
+        mSungSpan = new ForegroundColorSpan(mColorSung);
     }
 
     @Override
@@ -173,7 +177,11 @@ public class LyricsView extends LinearLayout {
             // No timing info: scroll proportionally to the playback progress
             int range = mLinesContainer.getHeight() - mScroll.getHeight();
             if (range > 0) {
-                mScroll.smoothScrollTo(0, (int) (range * Math.min(1f, positionMs / (float) durationMs)));
+                int target = (int) (range * Math.min(1f, positionMs / (float) durationMs));
+                // Move in small steps, not on every tick: each smooth scroll restarts an animation
+                if (Math.abs(target - mScroll.getScrollY()) >= mPlainScrollStepPx) {
+                    mScroll.smoothScrollTo(0, target);
+                }
             }
         }
     }
@@ -182,20 +190,46 @@ public class LyricsView extends LinearLayout {
         int index = mLyrics.findLineIndex(positionMs);
 
         if (index != mCurrentIndex) {
-            for (int i = 0; i < mLineViews.size(); i++) {
-                TextView view = mLineViews.get(i);
-                view.setText(view.getText().toString()); // drop the karaoke fill
-                view.setTextColor(i < index ? mColorPast : i == index ? mColorCurrent : mColorUpcoming);
-                view.setTextSize(TypedValue.COMPLEX_UNIT_SP, i == index ? CURRENT_LINE_SP : LINE_SP);
+            int previous = mCurrentIndex;
+            mCurrentIndex = index;
+
+            if (previous == Integer.MIN_VALUE) {
+                // First update: style every line
+                for (int i = 0; i < mLineViews.size(); i++) {
+                    styleLine(i);
+                }
+            } else {
+                if (previous >= 0) {
+                    mLineViews.get(previous).setText(lineText(previous)); // drop the karaoke fill
+                }
+                // Only the lines between the old and the new position change (usually just two)
+                for (int i = Math.max(0, Math.min(previous, index)); i <= Math.max(previous, index); i++) {
+                    styleLine(i);
+                }
             }
 
-            mCurrentIndex = index;
+            if (index >= 0) {
+                mLineViews.get(index).setText(lineText(index), TextView.BufferType.SPANNABLE);
+                mSungChars = -1;
+            }
+
             scrollToLine(index);
         }
 
         if (index >= 0) {
             fillLine(index, positionMs);
         }
+    }
+
+    private void styleLine(int i) {
+        TextView view = mLineViews.get(i);
+        view.setTextColor(i < mCurrentIndex ? mColorPast : i == mCurrentIndex ? mColorCurrent : mColorUpcoming);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, i == mCurrentIndex ? CURRENT_LINE_SP : LINE_SP);
+    }
+
+    private String lineText(int i) {
+        String text = mLyrics.getLines().get(i).text;
+        return text.isEmpty() ? EMPTY_LINE : text;
     }
 
     /**
@@ -213,11 +247,25 @@ public class LyricsView extends LinearLayout {
         // Don't stretch the fill over a long instrumental gap that follows the line
         long lineDurationMs = Math.min(nextStartMs - line.startMs, line.text.length() * 90L + 800);
         float progress = lineDurationMs > 0 ? Math.min(1f, (positionMs - line.startMs) / (float) lineDurationMs) : 1f;
-        int sungChars = Math.round(line.text.length() * progress);
+        int sungChars = Math.max(0, Math.round(line.text.length() * progress));
 
-        SpannableString text = new SpannableString(line.text);
-        text.setSpan(new ForegroundColorSpan(mColorSung), 0, sungChars, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mLineViews.get(index).setText(text);
+        if (sungChars == mSungChars) {
+            return; // nothing to redraw
+        }
+
+        mSungChars = sungChars;
+        CharSequence text = mLineViews.get(index).getText();
+
+        if (!(text instanceof Spannable)) {
+            return;
+        }
+
+        // A color span doesn't change the text size: the view is just redrawn, not laid out again
+        if (sungChars == 0) {
+            ((Spannable) text).removeSpan(mSungSpan); // empty exclusive spans aren't allowed
+        } else {
+            ((Spannable) text).setSpan(mSungSpan, 0, sungChars, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
     }
 
     private void scrollToLine(int index) {
