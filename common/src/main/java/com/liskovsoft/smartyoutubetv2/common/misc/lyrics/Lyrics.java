@@ -110,6 +110,23 @@ public class Lyrics {
     }
 
     /**
+     * Start of the first sung line or -1 for plain lyrics
+     */
+    public long getFirstLineStartMs() {
+        if (!mIsSynced) {
+            return -1;
+        }
+
+        for (Line line : mLines) {
+            if (!line.text.isEmpty()) {
+                return line.startMs;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * Index of the line that is sung at the given position or -1 if the song hasn't started yet.
      */
     public int findLineIndex(long positionMs) {

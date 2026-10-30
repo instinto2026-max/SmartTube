@@ -500,6 +500,7 @@
     <string name="lyrics_offset">Lyrics offset</string>
     <string name="lyrics_offset_value">%s s</string>
     <string name="lyrics_hide">Hide lyrics</string>
+    <string name="lyrics_sync_now">Sync now: press when the singing starts</string>
     <string name="open_comments">Open comments</string>
     <string name="place_chat_left">Place chat to the left</string>
     <string name="place_comments_left">Place comments to the left</string>

@@ -36,6 +36,8 @@ public class LyricsView extends LinearLayout {
     private static final float LINE_SP = 21;
     private static final float PLAIN_LINE_SP = 19;
     private static final String EMPTY_LINE = "♪";
+    // Longer than this to the next line means an instrumental part, not a slowly sung line
+    private static final long MAX_SUNG_LINE_MS = 7_000;
     private TextView mTitle;
     private TextView mArtist;
     private TextView mStatus;
@@ -244,8 +246,10 @@ public class LyricsView extends LinearLayout {
         }
 
         long nextStartMs = index + 1 < lines.size() ? lines.get(index + 1).startMs : line.startMs + 5_000;
-        // Don't stretch the fill over a long instrumental gap that follows the line
-        long lineDurationMs = Math.min(nextStartMs - line.startMs, line.text.length() * 90L + 800);
+        // Singers fill most of the time until the next line, with a short breath at the end.
+        // A long gap means an instrumental part follows: then don't stretch the fill over it.
+        long gapMs = nextStartMs - line.startMs;
+        long lineDurationMs = gapMs <= MAX_SUNG_LINE_MS ? gapMs * 85 / 100 : Math.min(gapMs, line.text.length() * 120L + 1_500);
         float progress = lineDurationMs > 0 ? Math.min(1f, (positionMs - line.startMs) / (float) lineDurationMs) : 1f;
         int sungChars = Math.max(0, Math.round(line.text.length() * progress));
 

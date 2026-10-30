@@ -15,6 +15,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -36,6 +38,10 @@ public class LrcLibClient {
     private static final Pattern NOISE = Pattern.compile("(?i)\\s*(official\\s+(music\\s+)?video|official\\s+audio|lyric\\s+video|video\\s+oficial|letra|lyrics?)\\s*$");
     private static final Pattern DASH = Pattern.compile("\\s+[-–—]\\s+");
     private static final Pattern CHANNEL_NOISE = Pattern.compile("(?i)(\\s*-\\s*topic|vevo|\\s+official)$");
+    // Splits "Artist A, Artist B & Artist C" to get the main artist
+    private static final Pattern ARTIST_SEPARATOR = Pattern.compile("(?i)\\s*(,|&|\\bx\\b|\\band\\b|\\by\\b|\\bfeat\\.?|\\bft\\.?)\\s*");
+    private static final Pattern DIACRITICS = Pattern.compile("\\p{M}+");
+    private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^\\p{L}\\p{N}]+");
 
     /**
      * Finds lyrics for a YouTube video.
@@ -71,13 +77,17 @@ public class LrcLibClient {
                 result = get(artist, track, durationSec);
             }
 
+            // Searches return loose matches: keep only songs whose name and artist appear in the video title or channel
+            String titleWords = normalize(videoTitle);
+            String channelWords = normalize(channelName);
+
             if (result == null && artist != null && !artist.isEmpty()) {
-                result = search("track_name=" + encode(track) + "&artist_name=" + encode(artist), durationSec);
+                result = search("track_name=" + encode(track) + "&artist_name=" + encode(artist), durationSec, titleWords, channelWords);
             }
 
             if (result == null) {
                 // Also covers "Song - Artist" titles
-                result = search("q=" + encode(cleanTitle), durationSec);
+                result = search("q=" + encode(cleanTitle), durationSec, titleWords, channelWords);
             }
 
             return result;
@@ -104,7 +114,7 @@ public class LrcLibClient {
     }
 
     @Nullable
-    private static Lyrics search(String query, long durationSec) throws IOException, JSONException {
+    private static Lyrics search(String query, long durationSec, String titleWords, String channelWords) throws IOException, JSONException {
         String body = request(API_URL + "/search?" + query);
 
         if (body == null) {
@@ -118,6 +128,10 @@ public class LrcLibClient {
             JSONObject item = items.getJSONObject(i);
 
             if (durationSec > 0 && Math.abs(item.optLong("duration", 0) - durationSec) > MAX_DURATION_DIFF_SEC) {
+                continue;
+            }
+
+            if (!isSameSong(item, titleWords, channelWords)) {
                 continue;
             }
 
@@ -137,6 +151,35 @@ public class LrcLibClient {
         }
 
         return bestPlain;
+    }
+
+    /**
+     * Without this check a video that isn't a song (or a different song) could get the lyrics of any song of similar length.
+     */
+    private static boolean isSameSong(JSONObject item, String titleWords, String channelWords) {
+        String track = normalize(FEAT.matcher(cleanTitle(item.optString("trackName"))).replaceAll(""));
+        String mainArtist = normalize(ARTIST_SEPARATOR.split(item.optString("artistName").trim(), 2)[0]);
+
+        if (track.trim().isEmpty() || mainArtist.trim().isEmpty()) {
+            return false;
+        }
+
+        return titleWords.contains(track) && (titleWords.contains(mainArtist) || channelWords.contains(mainArtist));
+    }
+
+    /**
+     * Lower case words without accents or punctuation, padded with spaces so contains() matches whole words.
+     */
+    static String normalize(@Nullable String text) {
+        if (text == null) {
+            return " ";
+        }
+
+        String result = Normalizer.normalize(text.toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
+        result = DIACRITICS.matcher(result).replaceAll("");
+        result = NON_ALPHANUMERIC.matcher(result).replaceAll(" ").trim();
+
+        return " " + result + " ";
     }
 
     @Nullable

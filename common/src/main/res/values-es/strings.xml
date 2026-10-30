@@ -464,6 +464,7 @@
   <string name="lyrics_offset">Desfase de la letra</string>
   <string name="lyrics_offset_value">%s s</string>
   <string name="lyrics_hide">Ocultar letra</string>
+  <string name="lyrics_sync_now">Sincronizar ahora: pulsa cuando empiece el canto</string>
   <string name="place_chat_left">Colocar chat a la izquierda</string>
   <string name="use_alt_speech_recognizer">Reconocimiento de voz alternativo</string>
   <string name="time_format">Modo tiempo</string>

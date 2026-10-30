@@ -1,5 +1,7 @@
 package com.liskovsoft.smartyoutubetv2.common.app.models.playback.controllers;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.view.Gravity;
 
@@ -31,7 +33,9 @@ public class LyricsController extends BasePlayerController {
     private static final long TICK_MS = 100;
     // The panel takes the rest of the screen (see LyricsView)
     private static final int VIDEO_ZOOM_PERCENTS = 62;
-    private static final long[] OFFSETS_MS = {-2_000, -1_500, -1_000, -500, 0, 500, 1_000, 1_500, 2_000};
+    // Music videos often have an intro before the song starts, so the range goes well beyond a few seconds
+    private static final long[] OFFSETS_MS = {-10_000, -5_000, -2_000, -1_000, -500, 0, 500, 1_000, 2_000, 5_000, 10_000};
+    private static final String OFFSETS_PREFS = "lyrics_offsets";
     private Disposable mLyricsAction;
     private Lyrics mLyrics;
     private String mLyricsVideoId;
@@ -48,7 +52,7 @@ public class LyricsController extends BasePlayerController {
             mLyrics = null;
             mLyricsVideoId = null;
             mLookupVideoId = null;
-            mOffsetMs = 0;
+            mOffsetMs = loadOffset(item.videoId);
             hidePanel();
         }
     }
@@ -91,16 +95,34 @@ public class LyricsController extends BasePlayerController {
         AppDialogPresenter dialogPresenter = getAppDialogPresenter();
         String title = getContext().getString(R.string.lyrics_offset);
 
+        if (mLyrics != null && mLyrics.getFirstLineStartMs() >= 0) {
+            // The quickest fix for a video with an intro: press when the singing starts
+            dialogPresenter.appendSingleButton(UiOptionItem.from(getContext().getString(R.string.lyrics_sync_now), optionItem -> {
+                if (getPlayer() != null && mLyrics != null) {
+                    setOffset(getPlayer().getPositionMs() - mLyrics.getFirstLineStartMs());
+                }
+                dialogPresenter.closeDialog();
+            }));
+        }
+
         List<OptionItem> options = new ArrayList<>();
+        boolean isCustomOffset = true;
 
         for (long offsetMs : OFFSETS_MS) {
-            String value = String.format(Locale.getDefault(), offsetMs > 0 ? "+%.1f" : "%.1f", offsetMs / 1_000f);
-            options.add(UiOptionItem.from(getContext().getString(R.string.lyrics_offset_value, value),
+            isCustomOffset &= offsetMs != mOffsetMs;
+            options.add(UiOptionItem.from(getContext().getString(R.string.lyrics_offset_value, formatOffset(offsetMs)),
                     optionItem -> {
-                        mOffsetMs = offsetMs;
+                        setOffset(offsetMs);
                         dialogPresenter.closeDialog();
                     },
                     mOffsetMs == offsetMs));
+        }
+
+        if (isCustomOffset) {
+            // Set with "sync now": show it, so it's clear the lyrics are shifted
+            long customOffset = mOffsetMs;
+            options.add(UiOptionItem.from(getContext().getString(R.string.lyrics_offset_value, formatOffset(customOffset)),
+                    optionItem -> dialogPresenter.closeDialog(), true));
         }
 
         dialogPresenter.appendRadioCategory(title, options);
@@ -110,6 +132,39 @@ public class LyricsController extends BasePlayerController {
         }));
 
         dialogPresenter.showDialog(title);
+    }
+
+    private static String formatOffset(long offsetMs) {
+        return String.format(Locale.getDefault(), offsetMs > 0 ? "+%.1f" : "%.1f", offsetMs / 1_000f);
+    }
+
+    /**
+     * Remembered per video, so the lyrics stay in sync next time
+     */
+    private void setOffset(long offsetMs) {
+        mOffsetMs = offsetMs;
+
+        Video video = getVideo();
+
+        if (video == null || video.videoId == null) {
+            return;
+        }
+
+        SharedPreferences prefs = getContext().getSharedPreferences(OFFSETS_PREFS, Context.MODE_PRIVATE);
+
+        if (offsetMs == 0) {
+            prefs.edit().remove(video.videoId).apply();
+        } else {
+            prefs.edit().putLong(video.videoId, offsetMs).apply();
+        }
+    }
+
+    private long loadOffset(String videoId) {
+        if (videoId == null || getContext() == null) {
+            return 0;
+        }
+
+        return getContext().getSharedPreferences(OFFSETS_PREFS, Context.MODE_PRIVATE).getLong(videoId, 0);
     }
 
     @Override
