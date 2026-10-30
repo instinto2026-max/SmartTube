@@ -77,6 +77,8 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
     private long mLastUpdateTimeMs = -1;
     private int mBootSectionIndex;
     private int mBootstrapSectionId = -1;
+    // Not a MediaGroup: lists the sections hidden from the sidebar
+    private static final int SECTION_MORE = 99;
 
     private BrowsePresenter(Context context) {
         super(context);
@@ -207,6 +209,8 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
         mSectionsMapping.put(MediaGroup.TYPE_NOTIFICATIONS, new BrowseSection(MediaGroup.TYPE_NOTIFICATIONS, getContext().getString(R.string.header_notifications), BrowseSection.TYPE_GRID, R.drawable.icon_notification, false));
         mSectionsMapping.put(MediaGroup.TYPE_PLAYBACK_QUEUE, new BrowseSection(MediaGroup.TYPE_PLAYBACK_QUEUE, getContext().getString(R.string.playback_queue_category_title), BrowseSection.TYPE_GRID, R.drawable.icon_queue, false));
 
+        mSectionsMapping.put(SECTION_MORE, new BrowseSection(SECTION_MORE, getContext().getString(R.string.header_more), BrowseSection.TYPE_SETTINGS_GRID, R.drawable.icon_more));
+
         if (getSidebarService().isSettingsSectionEnabled()) {
             mSectionsMapping.put(MediaGroup.TYPE_SETTINGS, new BrowseSection(MediaGroup.TYPE_SETTINGS, getContext().getString(R.string.header_settings), BrowseSection.TYPE_SETTINGS_GRID, R.drawable.icon_settings));
         }
@@ -250,6 +254,10 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
                 }
             }
         }
+
+        // Right above Settings
+        int settingsIndex = Helpers.indexOfFirst(mSections, section -> section.getId() == MediaGroup.TYPE_SETTINGS);
+        mSections.add(settingsIndex != -1 ? settingsIndex : mSections.size(), mSectionsMapping.get(SECTION_MORE));
     }
 
     private void initPinnedCallbacks() {
@@ -264,6 +272,23 @@ public class BrowsePresenter extends BasePresenter<BrowseView> implements Sectio
 
     private void initSettingsGridMapping() {
         mSettingsGridMapping.put(MediaGroup.TYPE_SETTINGS, () -> mDataSourcePresenter.getSettingItems(getContext()));
+        mSettingsGridMapping.put(SECTION_MORE, this::getMoreItems);
+    }
+
+    private List<SettingsItem> getMoreItems() {
+        List<SettingsItem> items = new ArrayList<>();
+
+        for (int sectionId : getSidebarService().getDefaultSections().values()) {
+            BrowseSection section = mSectionsMapping.get(sectionId);
+
+            if (section == null || sectionId == MediaGroup.TYPE_SETTINGS || getSidebarService().isSectionPinned(sectionId)) {
+                continue;
+            }
+
+            items.add(new SettingsItem(section.getTitle(), () -> selectSection(sectionId), section.getResId()));
+        }
+
+        return items;
     }
 
     private void initLocalGridMapping() {

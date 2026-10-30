@@ -770,4 +770,5 @@
   <string name="lyrics_offset_value">%s s</string>
   <string name="lyrics_hide">Ocultar letra</string>
   <string name="lyrics_sync_now">Sincronizar ahora: pulsa cuando empiece el canto</string>
+    <string name="header_more">Más</string>
 </resources>

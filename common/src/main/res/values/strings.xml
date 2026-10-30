@@ -770,4 +770,5 @@
         <item quantity="one">%s second</item>
         <item quantity="other">%s seconds</item>
     </plurals>
+    <string name="header_more">More</string>
 </resources>

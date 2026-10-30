@@ -26,7 +26,15 @@ public class SidebarService implements ProfileChangeListener {
     private final AppPrefs mPrefs;
     private boolean mIsSettingsSectionEnabled;
     private int mBootSectionId;
+    private boolean mIsMinimalApplied;
     private final static int RESERVED_ID = 100;
+    // Minimal sidebar: the rest of the sections are in the More menu
+    private static final int[] MINIMAL_SECTIONS = {
+            MediaGroup.TYPE_HOME,
+            MediaGroup.TYPE_MUSIC,
+            MediaGroup.TYPE_SUBSCRIPTIONS,
+            MediaGroup.TYPE_SETTINGS
+    };
 
     private SidebarService(Context context) {
         mContext = context.getApplicationContext();
@@ -258,14 +266,26 @@ public class SidebarService implements ProfileChangeListener {
 
     private void initPinnedItems() {
         for (int sectionId : mDefaultSections.values()) {
-            // Hidden sections
-            enableSection(sectionId, !Helpers.equalsAny(sectionId, new int[] {
-                    MediaGroup.TYPE_NOTIFICATIONS,
-                    MediaGroup.TYPE_PLAYBACK_QUEUE,
-                    MediaGroup.TYPE_TRENDING,
-                    MediaGroup.TYPE_BLOCKED_CHANNELS
-            }));
+            enableSection(sectionId, Helpers.equalsAny(sectionId, MINIMAL_SECTIONS));
         }
+    }
+
+    /**
+     * One time switch to the minimal sidebar. Pinned channels and playlists stay.
+     */
+    private void applyMinimalSections() {
+        if (mIsMinimalApplied) {
+            return;
+        }
+
+        Helpers.removeIf(mPinnedItems, item -> item != null && item.sectionId != -1 && !Helpers.equalsAny(item.sectionId, MINIMAL_SECTIONS));
+
+        for (int sectionId : MINIMAL_SECTIONS) {
+            enableSection(sectionId, true);
+        }
+
+        mIsMinimalApplied = true;
+        persistState();
     }
 
     private void cleanupPinnedItems() {
@@ -295,12 +315,15 @@ public class SidebarService implements ProfileChangeListener {
         mPinnedItems = Helpers.parseList(split, 0, Video::fromString);
         mBootSectionId = Helpers.parseInt(split, 1, MediaGroup.TYPE_HOME);
         mIsSettingsSectionEnabled = Helpers.parseBoolean(split, 2, true);
+        mIsMinimalApplied = Helpers.parseBoolean(split, 3, false);
 
         transferOldPinnedItems();
 
         if (mPinnedItems.isEmpty()) {
             initPinnedItems();
         }
+
+        applyMinimalSections();
 
         // Backward compatibility
         enableSection(MediaGroup.TYPE_SETTINGS, true);
@@ -321,7 +344,7 @@ public class SidebarService implements ProfileChangeListener {
     }
 
     public void persistState() {
-        mPrefs.setSidebarData(Helpers.mergeData(mPinnedItems, mBootSectionId, mIsSettingsSectionEnabled));
+        mPrefs.setSidebarData(Helpers.mergeData(mPinnedItems, mBootSectionId, mIsSettingsSectionEnabled, mIsMinimalApplied));
     }
 
     @Override
